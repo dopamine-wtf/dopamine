@@ -1,1 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dopamine.wtf</title>
+  <link rel="icon" href="icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --blue:       #00BFFF;
+      --blue-glow:  rgba(0,191,255,0.48);
+      --blue-mid:   rgba(0,191,255,0.22);
+      --blue-faint: rgba(0,191,255,0.07);
+      --bg:         #030810;
+      --bg2:        #060e1a;
+      --text:       #ddeeff;
+      --muted:      #4a6a80;
+      --border:     rgba(0,191,255,0.13);
+      --border-hi:  rgba(0,191,255,0.32);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      overflow-x: hidden;
+      cursor: crosshair;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999; opacity: 0.55;
+    }
+    .grid-bg {
+      position: fixed; inset: 0;
+      background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 54px 54px;
+      pointer-events: none;
+      mask-image: radial-gradient(ellipse 90% 65% at 50% 0%, black 20%, transparent 100%);
+    }
 
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.1rem 3rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(3,8,16,0.88);
+      backdrop-filter: blur(16px);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .nav-logo img { width: 27px; height: 27px; border-radius: 5px; }
+    .nav-logo span { font-family: 'Bebas Neue', sans-serif; font-size: 1.35rem; letter-spacing: 2.5px; color: var(--blue); }
+    .nav-links { display: flex; gap: 2.2rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.68rem; letter-spacing: 1.5px; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--blue); }
+    .nav-cta {
+      background: var(--blue); color: #030810;
+      font-family: 'DM Mono', monospace; font-size: 0.7rem; font-weight: 500; letter-spacing: 1px;
+      padding: 0.55rem 1.4rem; border: none; border-radius: 3px;
+      cursor: pointer; text-decoration: none;
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+    .nav-cta:hover { box-shadow: 0 0 24px var(--blue-glow); transform: translateY(-1px); }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 9rem 2rem 5rem; position: relative;
+    }
+    .hero-glow {
+      position: absolute; top: 8%; left: 50%; transform: translateX(-50%);
+      width: 720px; height: 440px;
+      background: radial-gradient(ellipse, rgba(0,191,255,0.12) 0%, transparent 68%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      border: 1px solid var(--border-hi); background: var(--blue-faint);
+      color: var(--blue); font-size: 0.64rem; letter-spacing: 2px; text-transform: uppercase;
+      padding: 0.38rem 1.1rem; border-radius: 2px; margin-bottom: 2.2rem;
+      animation: fadeUp 0.5s ease both;
+    }
+    .badge-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--blue); animation: pulse 2s infinite; }
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(5.5rem, 14vw, 11.5rem);
+      letter-spacing: 3px; line-height: 0.9;
+      animation: fadeUp 0.6s 0.08s ease both;
+    }
+    .hero-title .accent { color: var(--blue); }
+    .hero-title .u { display: inline-block; position: relative; }
+    .hero-title .u::after {
+      content: ''; position: absolute; bottom: 3px; left: 0; right: 0; height: 4px;
+      background: var(--blue); box-shadow: 0 0 18px var(--blue-glow);
+      transform: scaleX(0); transform-origin: left;
+      animation: lineIn 0.55s 0.9s ease forwards;
+    }
+    .hero-sub {
+      margin-top: 2rem; max-width: 480px;
+      color: var(--muted); line-height: 1.75; font-size: 0.82rem;
+      animation: fadeUp 0.6s 0.14s ease both;
+    }
+    .hero-cta {
+      margin-top: 2.8rem; display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+    .btn-primary {
+      background: var(--blue); color: #030810;
+      font-family: 'DM Mono', monospace; font-weight: 500;
+      font-size: 0.75rem; letter-spacing: 1px;
+      padding: 0.88rem 2.3rem; border: none; border-radius: 3px;
+      cursor: pointer; text-decoration: none; display: inline-block;
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover { box-shadow: 0 0 34px var(--blue-glow), 0 0 12px var(--blue-glow); transform: translateY(-2px); }
+    .btn-ghost {
+      background: transparent; color: var(--blue);
+      font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: 1px;
+      padding: 0.88rem 2.3rem; border: 1px solid var(--border-hi); border-radius: 3px;
+      cursor: pointer; text-decoration: none; display: inline-block;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    }
+    .btn-ghost:hover { background: var(--blue-faint); border-color: var(--blue); transform: translateY(-2px); }
+
+    /* PREVIEW GRID */
+    .preview-grid {
+      margin-top: 4.5rem;
+      width: 100%; max-width: 960px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 3px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 0 70px rgba(0,191,255,0.07);
+      animation: fadeUp 0.7s 0.32s ease both;
+    }
+    .preview-main {
+      grid-column: 1 / 3;
+      position: relative;
+    }
+    .preview-main img { width: 100%; display: block; }
+    .preview-label {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(3,8,16,0.85));
+      padding: 1.2rem 1.2rem 0.8rem;
+      font-size: 0.64rem; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--blue); text-align: left;
+    }
+    .preview-thumb {
+      position: relative;
+      border-top: 3px solid var(--bg);
+    }
+    .preview-thumb img { width: 100%; display: block; }
+    .preview-thumb .preview-label { font-size: 0.6rem; }
+    .preview-sep { width: 3px; background: var(--bg); }
+
+    /* MARQUEE */
+    .marquee-wrap {
+      overflow: hidden;
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      background: var(--blue-faint); padding: 0.72rem 0; white-space: nowrap;
+    }
+    .marquee-track { display: inline-flex; animation: marquee 24s linear infinite; }
+    .m-item { font-size: 0.64rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--blue); opacity: 0.6; padding: 0 2rem; }
+    .m-sep { color: var(--border-hi); opacity: 1; padding: 0; font-size: 0.7rem; }
+
+    /* SECTION */
+    .section { padding: 7rem 2rem; max-width: 1080px; margin: 0 auto; }
+    .section-label { font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase; color: var(--blue); margin-bottom: 0.9rem; }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 5vw, 4rem); letter-spacing: 2px; line-height: 1; margin-bottom: 0.9rem; }
+    .section-sub { color: var(--muted); font-size: 0.8rem; line-height: 1.8; max-width: 460px; margin-bottom: 3.8rem; }
+
+    /* FEATURES */
+    .feat-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px; background: var(--border); border: 1px solid var(--border);
+    }
+    .feat-card {
+      background: var(--bg); padding: 2.2rem 1.9rem;
+      position: relative; overflow: hidden; transition: background 0.2s;
+    }
+    .feat-card::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--blue); transform: scaleX(0); transform-origin: left; transition: transform 0.3s;
+    }
+    .feat-card:hover::after { transform: scaleX(1); }
+    .feat-card:hover { background: var(--bg2); }
+    .feat-icon {
+      width: 36px; height: 36px; border: 1px solid var(--border); border-radius: 4px;
+      background: var(--blue-faint); display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1.4rem;
+    }
+    .feat-icon svg { width: 18px; height: 18px; fill: none; stroke: var(--blue); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .feat-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 1.5px; margin-bottom: 0.5rem; }
+    .feat-desc { font-size: 0.74rem; color: var(--muted); line-height: 1.78; }
+
+    /* STATS */
+    .stats-row {
+      display: flex; gap: 0; flex-wrap: wrap;
+      border: 1px solid var(--border); background: var(--border); margin-top: 4.5rem;
+    }
+    .stat { flex: 1; min-width: 140px; background: var(--bg); padding: 2rem 2.5rem; border-right: 1px solid var(--border); }
+    .stat:last-child { border-right: none; }
+    .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; letter-spacing: 1px; color: var(--blue); line-height: 1; }
+    .stat-label { font-size: 0.66rem; color: var(--muted); margin-top: 0.3rem; letter-spacing: 1px; text-transform: uppercase; }
+
+    /* CODE */
+    .code-block { background: #020609; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
+    .code-bar {
+      background: var(--bg2); border-bottom: 1px solid var(--border);
+      padding: 0.62rem 1.1rem; display: flex; align-items: center; gap: 0.45rem;
+    }
+    .cd { width: 9px; height: 9px; border-radius: 50%; }
+    .cd:nth-child(1) { background: #ff5f56; }
+    .cd:nth-child(2) { background: #ffbd2e; }
+    .cd:nth-child(3) { background: #27c93f; }
+    .code-fname { margin-left: auto; font-size: 0.62rem; color: var(--muted); letter-spacing: 1px; }
+    .code-body { padding: 1.6rem 1.8rem; line-height: 2.05; font-size: 0.77rem; }
+    .ck { color: #c792ea; } .cs { color: #c3e88d; } .cf { color: var(--blue); }
+    .cv { color: #f07178; } .cn { color: #f78c6c; } .cc { color: #2d5a6e; }
+    .cur { display: inline-block; width: 7px; height: 0.9em; background: var(--blue); vertical-align: middle; animation: blink 1s step-end infinite; }
+
+    /* SPLIT */
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+
+    /* PRICING */
+    .price-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px; background: var(--border); border: 1px solid var(--border);
+    }
+    .price-card { background: var(--bg); padding: 2.6rem 2rem; position: relative; transition: background 0.2s; }
+    .price-card:hover { background: var(--bg2); }
+    .price-card.feat { background: var(--bg2); }
+    .price-card.feat::before {
+      content: 'POPULAR'; position: absolute; top: 0; right: 2rem;
+      background: var(--blue); color: #030810; font-size: 0.55rem;
+      font-weight: 500; letter-spacing: 2px; padding: 0.28rem 0.75rem;
+      border-radius: 0 0 3px 3px;
+    }
+    .price-tier { font-size: 0.62rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 0.8rem; }
+    .price-amt { font-family: 'Bebas Neue', sans-serif; font-size: 4.2rem; letter-spacing: -1px; line-height: 1; }
+    .price-amt sup { font-size: 1.5rem; letter-spacing: 0; vertical-align: super; }
+    .price-period { font-size: 0.7rem; color: var(--muted); margin: 0.4rem 0 2rem; }
+    .price-feats { list-style: none; margin-bottom: 2rem; display: flex; flex-direction: column; gap: 0.75rem; }
+    .price-feats li { font-size: 0.74rem; color: var(--muted); display: flex; align-items: center; gap: 0.6rem; }
+    .price-feats li::before { content: '\2014'; color: var(--blue); flex-shrink: 0; }
+
+    /* FAQ */
+    .faq-list { display: flex; flex-direction: column; }
+    .faq-item { border-top: 1px solid var(--border); padding: 1.6rem 0; }
+    .faq-item:last-child { border-bottom: 1px solid var(--border); }
+    .faq-q { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 1px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+    .faq-q .tog { color: var(--blue); font-family: 'DM Mono', monospace; font-size: 1.2rem; transition: transform 0.3s; flex-shrink: 0; margin-left: 1rem; }
+    .faq-a { display: none; color: var(--muted); font-size: 0.77rem; line-height: 1.78; padding-top: 0.9rem; max-width: 580px; }
+    .faq-item.open .faq-a { display: block; }
+    .faq-item.open .tog { transform: rotate(45deg); }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border); padding: 2.5rem 3rem;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;
+    }
+    .f-logo { display: flex; align-items: center; gap: 0.5rem; font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 2px; color: var(--blue); }
+    .f-logo img { width: 20px; height: 20px; border-radius: 3px; }
+    .f-copy { font-size: 0.66rem; color: var(--muted); }
+    .f-links { display: flex; gap: 1.8rem; list-style: none; }
+    .f-links a { color: var(--muted); text-decoration: none; font-size: 0.66rem; letter-spacing: 0.5px; transition: color 0.2s; }
+    .f-links a:hover { color: var(--blue); }
+    .dark-band { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes lineIn { to { transform: scaleX(1); } }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.2; } }
+    @keyframes blink  { 0%,100% { opacity:1; } 50% { opacity:0; } }
+    @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    @media (max-width: 760px) {
+      .feat-grid, .price-grid { grid-template-columns: 1fr; }
+      .split { grid-template-columns: 1fr; gap: 3rem; }
+      nav { padding: 1rem 1.2rem; }
+      .nav-links { display: none; }
+      footer { flex-direction: column; align-items: flex-start; }
+      .preview-grid { grid-template-columns: 1fr; }
+      .preview-main { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <img src="icon.png" alt="dopamine.wtf" />
+    <span>dopamine.wtf</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <a href="#pricing" class="nav-cta">Get Access</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+
+  <div class="hero-badge">
+    <span class="badge-dot"></span>
+    Roblox Script Executor &mdash; v2.0 Live
+  </div>
+
+  <h1 class="hero-title">
+    <span class="accent">dopa</span>mine<span class="accent">.</span><span class="u">wtf</span>
+  </h1>
+
+  <p class="hero-sub">
+    The Roblox scripting suite built for people who know what they want. Inject, execute, and dominate &mdash; no babysitting required.
+  </p>
+
+  <div class="hero-cta">
+    <a href="#pricing" class="btn-primary">Get Access</a>
+    <a href="#features" class="btn-ghost">See Features</a>
+  </div>
+
+  <!-- 3-image preview grid: executor on top, two game previews below -->
+  <div class="preview-grid">
+    <div class="preview-main">
+      <img src="preview3.png" alt="dopamine.wtf executor with script" />
+      <div class="preview-label">Executor &mdash; Script loaded</div>
+    </div>
+    <div class="preview-thumb">
+      <img src="preview1.png" alt="D-Day" />
+      <div class="preview-label">D-Day</div>
+    </div>
+    <div class="preview-thumb" style="border-left: 3px solid var(--bg);">
+      <img src="preview2.png" alt="Trident Survival" />
+      <div class="preview-label">Trident Survival</div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="m-item">dopamine.wtf</span><span class="m-sep">|</span>
+    <span class="m-item">Roblox Executor</span><span class="m-sep">|</span>
+    <span class="m-item">Undetected</span><span class="m-sep">|</span>
+    <span class="m-item">Script Hub</span><span class="m-sep">|</span>
+    <span class="m-item">Fast Inject</span><span class="m-sep">|</span>
+    <span class="m-item">Auto Execute</span><span class="m-sep">|</span>
+    <span class="m-item">Luau Support</span><span class="m-sep">|</span>
+    <span class="m-item">dopamine.wtf</span><span class="m-sep">|</span>
+    <span class="m-item">Roblox Executor</span><span class="m-sep">|</span>
+    <span class="m-item">Undetected</span><span class="m-sep">|</span>
+    <span class="m-item">Script Hub</span><span class="m-sep">|</span>
+    <span class="m-item">Fast Inject</span><span class="m-sep">|</span>
+    <span class="m-item">Auto Execute</span><span class="m-sep">|</span>
+    <span class="m-item">Luau Support</span><span class="m-sep">|</span>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div id="features" class="section">
+  <p class="section-label">// what it does</p>
+  <h2 class="section-title">Every feature<br /><span style="color:var(--blue)">earned its place.</span></h2>
+  <p class="section-sub">No bloat, no gimmicks. Just tools that work every time you open the executor.</p>
+
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+      <div class="feat-name">Fast Inject</div>
+      <p class="feat-desc">Sub-second injection on every launch. Stable kernel-level hook with no crashes, no false positives.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+      <div class="feat-name">Full Luau API</div>
+      <p class="feat-desc">All standard Roblox Lua globals plus custom extensions. Write scripts without dead-end workarounds.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+      <div class="feat-name">Script Hub</div>
+      <p class="feat-desc">300+ pre-loaded scripts for top games. Updated weekly. Search, preview, and execute in one click.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div class="feat-name">Bypass Engine</div>
+      <p class="feat-desc">Proprietary bypass layer. Auto-patched within hours of any Roblox anti-cheat update, every time.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></div>
+      <div class="feat-name">Auto Execute</div>
+      <p class="feat-desc">Scripts trigger automatically on game join. Per-game configs stored locally so your setup is always live.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div class="feat-name">Discord Support</div>
+      <p class="feat-desc">Pro and Group members get a private support channel. Response times under 2 hours, seven days a week.</p>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat"><div class="stat-num">300+</div><div class="stat-label">Scripts in hub</div></div>
+    <div class="stat"><div class="stat-num">14k</div><div class="stat-label">Active users</div></div>
+    <div class="stat"><div class="stat-num">&lt;1s</div><div class="stat-label">Inject time</div></div>
+    <div class="stat"><div class="stat-num">99%</div><div class="stat-label">Uptime</div></div>
+  </div>
+</div>
+
+<!-- CODE SECTION -->
+<div class="dark-band">
+  <div class="section" style="padding:5rem 2rem;">
+    <div class="split">
+      <div>
+        <p class="section-label">// editor</p>
+        <h2 class="section-title">Write less.<br /><span style="color:var(--blue)">Execute more.</span></h2>
+        <p class="section-sub">Full Luau syntax support, built-in autocomplete, and a real editor &mdash; not a glorified text box.</p>
+        <a href="#pricing" class="btn-primary" style="margin-top:1.5rem;">Get Access</a>
+      </div>
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="cd"></div><div class="cd"></div><div class="cd"></div>
+          <span class="code-fname">main.lua</span>
+        </div>
+        <div class="code-body">
+          <div><span class="cc">-- dopamine.wtf executor</span></div>
+          <div><span class="ck">local</span> <span class="cv">Players</span> = <span class="cf">game</span>:GetService(<span class="cs">"Players"</span>)</div>
+          <div><span class="ck">local</span> <span class="cv">lp</span> = <span class="cv">Players</span>.LocalPlayer</div>
+          <div>&nbsp;</div>
+          <div><span class="cc">-- auto-farm loop</span></div>
+          <div><span class="ck">while</span> <span class="cf">task</span>.wait(<span class="cn">0.5</span>) <span class="ck">do</span></div>
+          <div>&nbsp;&nbsp;<span class="ck">if</span> <span class="cv">lp</span>.Character <span class="ck">then</span></div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="cf">farm</span>(<span class="cv">lp</span>.Character)</div>
+          <div>&nbsp;&nbsp;<span class="ck">end</span></div>
+          <div><span class="ck">end</span></div>
+          <div>&nbsp;</div>
+          <div><span class="cf">print</span>(<span class="cs">"dopamine loaded"</span>) <span class="cur"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<div id="pricing" class="section">
+  <p class="section-label">// pricing</p>
+  <h2 class="section-title">Pay once.<br /><span style="color:var(--blue)">Own it.</span></h2>
+  <p class="section-sub">No subscriptions. No renewal traps. Pay once and you are in for the duration listed.</p>
+
+  <div class="price-grid">
+    <div class="price-card">
+      <div class="price-tier">Starter</div>
+      <div class="price-amt"><sup>$</sup>19</div>
+      <div class="price-period">one-time &mdash; 1 device</div>
+      <ul class="price-feats">
+        <li>Core executor</li>
+        <li>Script hub access</li>
+        <li>6 months of updates</li>
+        <li>Community support</li>
+      </ul>
+      <a href="#" class="btn-ghost" style="width:100%;text-align:center;padding:0.8rem;">Buy Starter</a>
+    </div>
+    <div class="price-card feat">
+      <div class="price-tier">Pro</div>
+      <div class="price-amt"><sup>$</sup>49</div>
+      <div class="price-period">one-time &mdash; 3 devices</div>
+      <ul class="price-feats">
+        <li>Everything in Starter</li>
+        <li>Bypass engine updates</li>
+        <li>Auto execute configs</li>
+        <li>Lifetime updates</li>
+        <li>Priority Discord support</li>
+      </ul>
+      <a href="#" class="btn-primary" style="width:100%;text-align:center;padding:0.8rem;">Buy Pro</a>
+    </div>
+    <div class="price-card">
+      <div class="price-tier">Group</div>
+      <div class="price-amt"><sup>$</sup>149</div>
+      <div class="price-period">one-time &mdash; unlimited devices</div>
+      <ul class="price-feats">
+        <li>Everything in Pro</li>
+        <li>Shared script library</li>
+        <li>Group config sync</li>
+        <li>Dedicated support channel</li>
+      </ul>
+      <a href="#" class="btn-ghost" style="width:100%;text-align:center;padding:0.8rem;">Buy Group</a>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ -->
+<div id="faq" style="border-top:1px solid var(--border);">
+  <div class="section">
+    <p class="section-label">// faq</p>
+    <h2 class="section-title" style="margin-bottom:3rem;">Common questions.</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">What Windows versions are supported?<span class="tog">+</span></div>
+        <p class="faq-a">Windows 10 and Windows 11, 64-bit only. macOS and Linux are not currently supported as the executor relies on direct Windows API access.</p>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">How quickly does the bypass update after a Roblox patch?<span class="tog">+</span></div>
+        <p class="faq-a">Pro and Group members get bypass patches within a few hours of any Roblox anti-cheat change. Starter users receive updates within 24 hours. Patch announcements are posted in the Discord server.</p>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">Will this get my Roblox account flagged?<span class="tog">+</span></div>
+        <p class="faq-a">Using a script executor violates Roblox's Terms of Service. dopamine.wtf minimises detection risk through its bypass engine, but no executor is risk-free. We recommend using an alternate account. We are not responsible for any account actions taken by Roblox.</p>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">What is the refund policy?<span class="tog">+</span></div>
+        <p class="faq-a">72-hour refund window from the date of purchase. If the product does not work on your system and our support team cannot resolve it, you will receive a full refund with no friction.</p>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">Is there a free trial?<span class="tog">+</span></div>
+        <p class="faq-a">Yes. A 7-day limited trial is available with core executor access and no Script Hub. No credit card required &mdash; download from the top of the page.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="f-logo">
+    <img src="icon.png" alt="dopamine.wtf" />
+    dopamine.wtf
+  </div>
+  <span class="f-copy">&copy; 2025 dopamine.wtf &mdash; All rights reserved.</span>
+  <ul class="f-links">
+    <li><a href="#">Discord</a></li>
+    <li><a href="#">Twitter</a></li>
+    <li><a href="#">Terms</a></li>
+    <li><a href="#">Privacy</a></li>
+  </ul>
+</footer>
+
+<script>
+  function toggleFaq(el) { el.closest('.faq-item').classList.toggle('open'); }
+  document.addEventListener('mousemove', e => {
+    const g = document.querySelector('.hero-glow');
+    if (!g) return;
+    const x = (e.clientX / window.innerWidth  - 0.5) * 36;
+    const y = (e.clientY / window.innerHeight - 0.5) * 24;
+    g.style.transform = `translateX(calc(-50% + ${x}px)) translateY(${y}px)`;
+  });
+</script>
+</body>
+</html>
